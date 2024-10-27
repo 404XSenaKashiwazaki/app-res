@@ -1,5 +1,6 @@
 import { DataTypes, Sequelize } from "sequelize"
 import sequelize from "../../config/Database.js"
+import Orders from "./Orders.js"
 
 const Payments = sequelize.define("Payments",{
     id: {
@@ -11,22 +12,33 @@ const Payments = sequelize.define("Payments",{
     amount: {
         type: DataTypes.STRING
     },
+    bill_amount:{
+        type: DataTypes.STRING,
+    },
+    return_amount:{
+        type: DataTypes.STRING,
+    },
     // payment_method: {
     //     type: DataTypes.ENUM("Cash", "Credit_card", "Debit_card", "Digital_wallet"),
     //     defaultValue:"Cash"
     // },
     payment_date: {
         type: DataTypes.DATE,
-        defaultValue: Sequelize.fn("NOW")
+        defaultValue: null,
+        allowNull: true
     },
     status:{
-        type: DataTypes.ENUM("Paid","Canceled"),
-        defaultValue: "Canceled"
+        type: DataTypes.ENUM("Waiting_For_Payment","Paid","Cancelled"),
+        defaultValue: "Waiting_For_Payment"
     }
 },{
     freezeTableName: true,
     paranoid: true,
-
+    hooks: {
+        afterUpsert: async (i,o)=> {
+            await Orders.update({ status: "Prepared"},{ where: { id: o.orderid } })
+        }
+    }
 })
 
 // foreign key

@@ -13,7 +13,7 @@ export const findAll = async (req) => {
 
   const offset = page > 1 ? (page * limit) - limit : 0
   const paranoid = req.query.type == "restore" ? false : true
-
+  const status = req.query.status || "Shopping_Cart"
   const users = await Users.findOne({ where: { username }, paranoid: false })  
   if(!users) throw CreateErrorMessage("Tidak ada data",404)
   const where = (paranoid) 
@@ -22,7 +22,8 @@ export const findAll = async (req) => {
       total_price: { [Op.like]: `%${search}%` }
     },
     [Op.and]:{
-      UserId: users.id
+      UserId: users.id,
+      status: status
     },
     deletedAt: {
       [Op.is]: null
@@ -33,7 +34,8 @@ export const findAll = async (req) => {
       total_price: { [Op.like]: `%${search}%` }
     },
     [Op.and]:{
-      UserId: users.id
+      UserId: users.id,
+      status: status
     },
     deletedAt: {
       [Op.not]: null
@@ -41,7 +43,7 @@ export const findAll = async (req) => {
   } }
 
   const whereCount = { where: { deletedAt: { [(paranoid) ? Op.is : Op.not] : null } } , paranoid: false}
-  const orders = await Orders.findAll({...where, paranoid ,limit, offset, order: [["id","DESC"]]})   
+  const orders = await Orders.findAll({...where,include: [{ model: Products }], paranoid ,limit, offset, order: [["id","DESC"]]})   
   const totals = await Orders.count(whereCount)
 
   const totalsCount = (search == "") ? totals : orders.length
@@ -57,16 +59,16 @@ export const findAll = async (req) => {
 
 export const findOne = async (req) => {
   const { id, username } = req.params
-  
+  const status = req.query.status || "Shopping_Cart"
   const users = await Users.findOne({ where: { username }, paranoid: false })  
   if(!users) throw CreateErrorMessage("Tidak ada data",404)
 
   const paranoid = req.query.type == "restore" ? false : true
   const where = paranoid 
-  ? { where: { [Op.and]: { id: id, UserId: users.id, deletedAt: { [Op.is]: null} }  } }
-  : { where: { [Op.and]: { id: id, UserId: users.id, deletedAt: { [Op.not]: null} }  } }
+  ? { where: { [Op.and]: { id: id, UserId: users.id, status: status, deletedAt: { [Op.is]: null} }  } }
+  : { where: { [Op.and]: { id: id, UserId: users.id, status: status, deletedAt: { [Op.not]: null} }  } }
 
-  const orders = await Orders.findOne({...where, paranoid})
+  const orders = await Orders.findOne({...where, include: [{ model: Products }], paranoid})
   if(!orders) throw CreateErrorMessage("Tidak ada data",404)
   return { 
     status:  200,
@@ -79,26 +81,19 @@ export const store = async req =>  {
   const { orders } = req.body
   try {
 
-    const response = await Promise.all(orders.map(async (e,i) => {
-      e.status = "Pending"
-
-        await sequelize.transaction(async t => {
-          const order = await Orders.create(e,{ fields:["total_price","status","UserId"], transaction: t})
-          e.OrderId = order.id
-          // // e.role = [1,2,3]
-          e.orders_item = e.orders_item.map((item=> ({ ...item,OrderId: order.id })))
-          console.log(e.orders_item);
-          
-          await OrdersItem.bulkCreate(e.orders_item,{ fields:["quantity","price","ShopId","OrderId","ProductId"], transaction: t})
-       
-         
-        })
-      return { id: e.OrderId }
-    }))
+    const response = await sequelize.transaction(async t => {
+      orders[0].status = "Shopping_Cart"
+      const order = await Orders.create(orders[0],{ fields:["total_price","status","UserId"], transaction: t})
+      orders[0].OrderId = order.id
+      // // e.role = [1,2,3]
+      orders[0].orders_item = orders[0].orders_item.map((item=> ({ ...item,OrderId: order.id })))
+      await OrdersItem.bulkCreate(orders[0].orders_item,{ fields:["quantity","price","ShopId","OrderId","ProductId"], transaction: t})
+      return order
+    })
     
     return { 
       status:  201,
-      message: `${ response.length} Data berhasil di simpan`, 
+      message: `Produk berhasil dimasukan ke keranjang belanja`, 
       response: { response: response  } 
     } 
   } catch (error) {
@@ -106,37 +101,23 @@ export const store = async req =>  {
   }
 }
 
-export const update = async req => {
+export const checkout = async req => {
   const { orders } = req.body
-  const response = (await Promise.all(orders.map(async e=> {
-    const orders = await Orders.findOne({ where: { id: e.orders_id }, include:[OrdersItem],paranoid: false, attributes: ["id"] })
-    if(!orders) return
-    const delOrderItems = orders?.OrdersItem.map(prod => (prod.ProductId != e.ProductId) ? prod.ProductId : null).filter(item => item != null)
+  const response = await Orders.findOne({  where: { id: orders[0].OrderId, UserId: orders[0].UserId } })
 
-    await sequelize.transaction(async transaction => {
-      const orders = await orders.update(orders,{ fields: ["total_price","status","UserId"], transaction })
-      e.OrderId = orders.id
-      await OrdersItem.bulkCreate(orders,{ updateOnDuplicate:["order_date","quantity","price","OrderId","ProductId"], transaction })
-      if(delOrderItems.length > 0) orders.removeOrdersItem(delOrderItems)
-    })
-    
-    return { id: e.OrdersId }
-  }))).filter(e=> e != null)
-  if(response.length == 0) throw CreateErrorMessage("Tidak ada data",404)
-  
-    return { 
+  if(!response) throw CreateErrorMessage("Tidak ada data",404)
+
+  await response.update({ status: "Pending" },{ paymentid: orders[0].PaymentsMethodId ,  checkout: true})
+  return { 
     status:  201,
-    message: `${response.length} Tanggapan berhasil dikirim`, 
+    message: `Checkout berhasil`, 
     response: { response } 
   }
 }
 
 export const destroy = async req =>  {
   const { orderid, username } = req.params
-  console.log(req.params);
-  
-  // const orders = []
-  const orders = (await Orders.findAll({ where: { id: orderid }, include:[{ model: Users, where: { username: username }}], paranoid: false, attributes: ["id"] })).filter(e=> e != null)
+  const orders = (await Orders.findAll({ where: { id: orderid }, include:[{ model: Users, where: { username: username }}], attributes: ["id"] })).filter(e=> e != null)
   if(orders.length == 0) throw CreateErrorMessage("Tidak ada data",404)
 
   await Orders.destroy({ where: { id: orderid },force: true })
@@ -180,18 +161,15 @@ export const quantity = async req => {
 
 export const cancel = async req => {
   const { orderid, username } = req.params
-  console.log(req.params);
-  
   // const orders = []
-  const orders = (await Orders.findAll({ where: { id: orderid }, include:[{ model: Users, where: { username: username }}], paranoid: false, attributes: ["id"] })).filter(e=> e != null)
-  if(orders.length == 0) throw CreateErrorMessage("Tidak ada data",404)
+  const orders = await Orders.findOne({ where: { id: orderid }, include:[{ model: Users, where: { username: username }}], attributes: ["id"] })
+  if(!orders) throw CreateErrorMessage("Tidak ada data",404)
 
-  await Orders.destroy({ where: { id: orderid },force: false })
-  await Orders.runHooks("afterCancelOrders")
+  await orders.update({ status: "Cancelled" },{ cancel: true })
   
   return { 
     status:  200,
-    message: `${ orders.length } Data berhasil di hapus`, 
+    message: `Order berhasil dicancel`, 
     response: { orders  } 
   }
 }

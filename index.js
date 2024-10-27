@@ -21,6 +21,7 @@ import ShopsRoute from "./routes/backend/ShopsRoute.js"
 // ================= import routes frontend // =================
 import ProductsFrontRoute from "./routes/frontend/ProductsRoute.js"
 import OrdersFrontRoute from "./routes/frontend/OrdersRoute.js"
+import PaymentsRoute from "./routes/frontend/PaymentsRoute.js"
 // ================= import routes frontend // =================
 
 // ================= import routes auth // =================
@@ -35,7 +36,7 @@ import Database from "./config/Database.js"
 
 // ================= import widdleware // =================
 import CreateError from "./middleware/CreateError.js"
-import { Orders, OrdersItem, Products } from "./models/Index.js"
+import { Orders, OrdersItem, Payments, Products } from "./models/Index.js"
 
 // ================= import middleware // =================
 
@@ -66,6 +67,7 @@ const _run =  () => {
     // await Products.destroy({ where: { UserId: [1]} })
     // await Promise.all(products.map(product => product.destroy()))
         // await Orders.sync({ force: true })
+        // await Payments.sync({ force: true })
         // await OrdersItem.sync({ force: true })
         // await Products.sync({ force: true })
         // await ImageProducts.sync({ force: true })
@@ -119,7 +121,8 @@ app.use("/api/",ShopsRoute)
 
 // ================= routes frontend // =================
 app.use("/",ProductsFrontRoute)
-app.use("/", OrdersFrontRoute)
+app.use("/",OrdersFrontRoute)
+app.use("/",PaymentsRoute)
 // ================= routes frontend // =================
 
 // ================= routes refreshtoken // =================

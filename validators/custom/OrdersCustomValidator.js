@@ -16,7 +16,7 @@ export const validateDuplicate = async (req,res,next) => {
         })
 
         const stokProductInDb = await Products.findOne({ where: { id: e.ProductId }, attributes:["stok_produk"] })
-        if(stokProductInDb.stok_produk <= e.quantity) uniqErr.push({
+        if(stokProductInDb.stok_produk < e.quantity) uniqErr.push({
             "value": "",
             "msg": `Quantity melebihi stok, jadi tidak bisa diorder`,
             "param": `orders[0].orders_item[${i}].ProductId`,
@@ -106,4 +106,11 @@ export const ruleOders = [
 
 export const ruleQuantity = [
     check("quantity").trim().notEmpty().withMessage("Quantity tidak boleh kosong")
+]
+
+export const ruleCheckout = [
+    check("orders").isArray().withMessage("Data tidak valid"),
+    check("orders.*.OrderId").notEmpty().withMessage("Data Order tidak valid"),
+    check("orders.*.UserId.*.ShopId").notEmpty().withMessage("User tidak boleh kosong"),
+    check("orders.*.PaymentsMethodId").notEmpty().withMessage("Pembayaran tidak boleh kosong"),
 ]
