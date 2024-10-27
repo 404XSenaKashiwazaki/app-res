@@ -35,7 +35,7 @@ import Database from "./config/Database.js"
 
 // ================= import widdleware // =================
 import CreateError from "./middleware/CreateError.js"
-import { Orders, OrdersItem } from "./models/Index.js"
+import { Orders, OrdersItem, Products } from "./models/Index.js"
 
 // ================= import middleware // =================
 

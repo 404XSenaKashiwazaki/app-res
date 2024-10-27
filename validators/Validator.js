@@ -24,4 +24,24 @@ const validate = validations => {
     }
 }
 
+// const validate = validations => {
+//     return async (req,res,nex) => {
+        
+//         for(let validate of validations){
+//             const res = await validate.run(req)
+//             if(res.errors.length) break
+//         }
+        
+//         const error = validationResult(req).array({ onlyFirstError: true })
+//         if(req?.files?.length > 0) req.files.map(e=>{ 
+//             unlink(`${e.destination}/${e.filename}`,(err) => {
+//                 if(err) throw err
+//                 console.log("Delete file success");
+//             })
+//         })    
+//         if(error.length > 0) return res.status(400).json({ errors: error })    
+//         return nex()
+//     }
+// }
+
 export { validate }

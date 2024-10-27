@@ -1,5 +1,5 @@
 import Orders from "../../models/front/Orders.js"
-import {OrdersItem} from "../../models/Index.js"
+import {OrdersItem, Products} from "../../models/Index.js"
 import { CreateErrorMessage } from "../../utils/CreateError.js"
 import sequelize from "../../config/Database.js"
 import Users from "../../models/backend/Users.js"
@@ -132,11 +132,63 @@ export const update = async req => {
 }
 
 export const destroy = async req =>  {
-  const { id } = req.body
-  const orders = (await Orders.findAll({ where: { id: id }, paranoid: false, attributes: ["id"] })).filter(e=> e != null)
+  const { orderid, username } = req.params
+  console.log(req.params);
+  
+  // const orders = []
+  const orders = (await Orders.findAll({ where: { id: orderid }, include:[{ model: Users, where: { username: username }}], paranoid: false, attributes: ["id"] })).filter(e=> e != null)
   if(orders.length == 0) throw CreateErrorMessage("Tidak ada data",404)
 
-  await Orders.destroy({ where: { id } })
+  await Orders.destroy({ where: { id: orderid },force: true })
+  return { 
+    status:  200,
+    message: `${ orders.length } Data berhasil di hapus`, 
+    response: { orders  } 
+  }
+}
+
+export const quantity = async req => {
+  const { username, orderid, productid, type} = req.params || ""
+
+  const dataInDb = await Users.findOne({ where: { username }, include:[{ model: Orders, include:[{ model: Products, through: { where: { OrderId: orderid, ProductId: productid} } }], where: { id: orderid } }] })
+
+  if(!dataInDb || 
+    (dataInDb && dataInDb.Orders.length == 0) || 
+    (dataInDb.Orders[0].Products.length == 0))  throw CreateErrorMessage("Tidak ada data",404)
+  
+    const quantityInDb = dataInDb.Orders[0].Products[0].OrdersItems.quantity
+    const stokInDb = dataInDb.Orders[0].Products[0].stok_produk
+    console.log(stokInDb);
+    
+  if(quantityInDb == 1 && type == "decrement") throw CreateErrorMessage("Quantity tidak bisa dikurangi lagi",400)
+  if(stokInDb <= quantityInDb && type == "increment") throw CreateErrorMessage("Quantity tidak bisa ditambah lagi",400);
+    (type == "increment") 
+  ? await OrdersItem.increment("quantity",{
+    where: { OrderId: orderid, ProductId: productid }
+  }) 
+  : await OrdersItem.decrement("quantity",{ 
+    where: { OrderId: orderid, ProductId: productid}
+  })
+
+  return { 
+    status:  200,
+    message: `Quantity berhasil ${ type == "increment" ? `ditambahkan` : `dikurangi` }`, 
+    response: req.params
+  }
+
+}
+
+export const cancel = async req => {
+  const { orderid, username } = req.params
+  console.log(req.params);
+  
+  // const orders = []
+  const orders = (await Orders.findAll({ where: { id: orderid }, include:[{ model: Users, where: { username: username }}], paranoid: false, attributes: ["id"] })).filter(e=> e != null)
+  if(orders.length == 0) throw CreateErrorMessage("Tidak ada data",404)
+
+  await Orders.destroy({ where: { id: orderid },force: false })
+  await Orders.runHooks("afterCancelOrders")
+  
   return { 
     status:  200,
     message: `${ orders.length } Data berhasil di hapus`, 

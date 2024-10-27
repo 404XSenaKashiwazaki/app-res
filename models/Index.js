@@ -54,6 +54,24 @@ const OrdersItem = sequelize.define("OrdersItems",{
 },{
     freezeTableName: true,
     paranoid: true,
+    hooks: {
+        afterBulkCreate: i => {
+            i.map(async (item, indx) => {
+                await Products.decrement("stok_produk",{ by: item.quantity, where: { id: item.ProductId } })
+            })
+        },
+        beforeBulkDestroy: async i => {
+            const orderItem = await OrdersItem.findAll({  where: {  OrderId: i.where.OrderId}, paranoid: false})
+            console.log("sakgfosdgjdfijhdfkd",orderItem);
+                orderItem.map(async (item, indx) => {
+                    console.log(item);
+                    
+                    await Products.increment("stok_produk",{ by: item.quantity, where: { id: item.ProductId } }) //bug masih bisa di increment produk, padahal order sudah di hapus
+                })
+                // console.log(i);
+                
+        }
+    }
 
 })
 
@@ -86,8 +104,8 @@ Products.belongsTo(Category)
 Users.hasMany(Orders,{ onDelete: "CASCADE"})
 Orders.belongsTo(Users)
 
-Orders.belongsToMany(Products,{ through: OrdersItem })
-Products.belongsToMany(Orders,{ through: OrdersItem })
+Orders.belongsToMany(Products,{ through: OrdersItem , foreignKey: "OrderId"})
+Products.belongsToMany(Orders,{ through: OrdersItem, foreignKey: "ProductId" })
 
 Orders.hasOne(Payments,{ onDelete: "CASCADE" })
 Payments.belongsTo(Orders)
