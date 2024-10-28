@@ -2,6 +2,7 @@ import { Op } from "sequelize"
 import Tables from "../../models/backend/Tables.js"
 import Reservations from "../../models/front/Reservations.js"
 import { CreateErrorMessage } from "../../utils/CreateError.js"
+import sequelize from "../../config/Database.js"
 //============================// 
 
 export const findAll = async (req) => {
@@ -13,17 +14,11 @@ export const findAll = async (req) => {
   const paranoid = req.query.type == "restore" ? false : true
   const where = (paranoid) 
   ? { where: {
-    [Op.or]: {
-      table_number: { [Op.like]: `%${search}%` }
-    },
     deletedAt: {
       [Op.is]: null
     }
   } }
   : { where: {
-    [Op.or]: {
-      table_number: { [Op.like]: `%${search}%` }
-    },
     deletedAt: {
       [Op.not]: null
     }
@@ -61,21 +56,26 @@ export const findOne = async (req) => {
 
 }
 export const store = async (req) => {
-  const { reservations } = req.body
-  await Reservations.create(reservations,{ fields: ["reservation_time","status","TableId","UserId"]})
+  req.body.status = "Confirmed"
+  const reservations = await Reservations.create(req.body,{ fields: ["reservation_time","status","TableId","UserId"]})
   return { 
     status:  201,
-    message: `${reservations.length} Data berhasil disimpan`, 
+    message: `Data berhasil disimpan`, 
     response: { reservations  } 
   }
 }
 
 export const update = async (req) => {
-  const { id, reservation_time, status, TableId, UserId } = req.body
-  const reservations = await Reservations.findOne({ where: { id: id }, paranoid: false, attributes: ["id"] })
-  const response = await reservations.update({ reservation_time, status, TableId, UserId },{fields: ["reservation_time","status","TableId","UserId"]})
-
+  const {  reservations_id, reservation_time, status, TableId, UserId, TableIdOld } = req.body
+  const reservations = await Reservations.findOne({ where: { id: reservations_id }, paranoid: false, attributes: ["id"] })
   if(!reservations) throw CreateErrorMessage("Tidak ada data",404)
+  const response = await sequelize.transaction(async transaction => {
+      const res = await Reservations.update({ status, TableId, UserId },{ where: { id: reservations_id }, fields: ["status","TableId","UserId"], transaction, tabeleidold: TableIdOld})
+      if(res[0] == 1) {
+        await Tables.increment("table_filled",{ where: { id: TableId } , transaction })
+      }
+      return res
+  })
   return { 
     status:  201,
     message: `Data berhasil diupdate`, 
@@ -87,27 +87,46 @@ export const destroy = async (req) => {
   const { id } = req.body
   const force = req.query.permanent == "true" ? true : false
 
-  const reservations = (await Reservations.findAll({ where: { id: id }, paranoid: false, attributes: ["id"] })).filter(e=> e != null)
+  const reservations = (await Reservations.findAll({ where: { id: id }, paranoid: false, attributes: ["id","TableId"] })).filter(e=> e != null).map(e => e.TableId)
   if(reservations.length == 0) throw CreateErrorMessage("Tidak ada data",404)
 
-  await Reservations.destroy({ where: { id: id }, force: force })
+  console.log(reservations);
+
+  
+  const response = await sequelize.transaction(async transaction => {
+    const res = await Reservations.destroy({ where: { id: id }, transaction, force })
+    
+    if(res == 1) {
+      await Tables.decrement("table_filled",{ where: { id: reservations },transaction })
+    }
+    console.log(res);
+    
+    return res
+})
   return { 
     status:  200,
-    message: `${ reservations.length } Data berhasil dihapus`, 
-    response: { reservations  } 
+    message: `${ response } Data berhasil dihapus`, 
+    response: { response  } 
   }
 }
 
 export const restore = async (req) => {
   const { id } = req.body
-  const reservations = (await Reservations.findAll({ where: { id: id }, paranoid: false, attributes: ["id"] })).filter(e=> e != null)
+  const reservations = (await Reservations.findAll({ where: { id: id }, paranoid: false, attributes: ["id","TableId"] })).filter(e=> e != null).map(e => e.TableId)
   
   if(reservations.length == 0) throw CreateErrorMessage("Tidak ada data",404)
-  await Reservations.restore({ where: { id: id } })
-  
+
+  const response = await sequelize.transaction(async transaction => {
+    const res = await Reservations.restore({ where: { id: id }, transaction })
+    
+    if(res == 1) {
+      await Tables.increment("table_filled",{ where: { id: reservations },transaction })
+    }
+    return res
+})
   return { 
     status:  200,
-    message: `${ reservations.length } Data berhasil di restore`,  
-    response: { reservations } 
+    message: `${ response.length } Data berhasil di restore`,  
+    response: { response } 
   }
 }

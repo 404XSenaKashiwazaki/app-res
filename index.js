@@ -24,6 +24,8 @@ import ProductsFrontRoute from "./routes/frontend/ProductsRoute.js"
 import OrdersFrontRoute from "./routes/frontend/OrdersRoute.js"
 import PaymentsFrontRoute from "./routes/frontend/PaymentsRoute.js"
 import ShopsFrontRoute from "./routes/frontend/ShopsRoute.js" 
+import ReservationsFrontRoute from "./routes/frontend/ReservationsRoute.js"
+import TablesFrontRoute from "./routes/frontend/TablesRoute.js"
 // ================= import routes frontend // =================
 
 // ================= import routes auth // =================
@@ -38,7 +40,7 @@ import Database from "./config/Database.js"
 
 // ================= import widdleware // =================
 import CreateError from "./middleware/CreateError.js"
-import { Orders, OrdersItem, Payments, Products, Shops } from "./models/Index.js"
+import { Orders, OrdersItem, Payments, Products, Reservations, Shops } from "./models/Index.js"
 
 // ================= import middleware // =================
 
@@ -75,8 +77,8 @@ const _run =  () => {
         // await Products.sync({ force: true })
         // await ImageProducts.sync({ force: true })
         // await User_Products.sync({ force: true })
-
-        // await Database.sync({ force: true })
+        // await Reservations.sync({ force: true })
+        // await Database.sync({ force: true }) 
         // await Userd.sync({ force: true })
         // await Comment.sync({ force: true })
         // await Contact.sync({ force: true })
@@ -128,6 +130,8 @@ app.use("/",ProductsFrontRoute)
 app.use("/",OrdersFrontRoute)
 app.use("/",PaymentsFrontRoute)
 app.use("/",ShopsFrontRoute)
+app.use("/",ReservationsFrontRoute)
+app.use("/",TablesFrontRoute)
 // ================= routes frontend // =================
 
 // ================= routes refreshtoken // =================
