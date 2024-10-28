@@ -4,7 +4,8 @@ import {
     store as storeService,
     update as updateService,
     destroy as destroyService,
-    restore as restoreService
+    restore as restoreService,
+    acc as accService,
 } from "../../service/backend/ShopsService.js"
 import { CreateResponse } from "../../utils/CreateResponse.js"
 
@@ -57,6 +58,15 @@ export const destroy = async (req,res,next) => {
 export const restore = async (req,res,next) => {
     try {
         const response = await restoreService(req)
+        CreateResponse(res, response)
+    } catch (error) {
+        next(error)
+    }
+}
+
+export const acc = async (req,res,next) => {
+    try {
+        const response = await accService(req)
         CreateResponse(res, response)
     } catch (error) {
         next(error)

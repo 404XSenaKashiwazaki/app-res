@@ -173,3 +173,18 @@ export const cancel = async req => {
     response: { orders  } 
   }
 }
+
+export const accepted = async req => {
+  const { orderid, username } = req.params
+  // const orders = []
+  const orders = await Orders.findOne({ where: { id: orderid, status: "Delivery_Process" }, include:[{ model: Users, where: { username: username }}], attributes: ["id"] })
+  if(!orders) throw CreateErrorMessage("Tidak ada data",404)
+
+  await orders.update({ status: "Completed" })
+  
+  return { 
+    status:  200,
+    message: `Order berhasil diterima`, 
+    response: { orders  } 
+  }
+}

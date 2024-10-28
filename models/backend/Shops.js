@@ -20,10 +20,15 @@ const Shops = sequelize.define("Shops",{
     desk: {
         type: DataTypes.TEXT
     },
-
+    id_card:{
+        type: DataTypes.STRING(500)
+    },
+    comment: {
+        type: DataTypes.TEXT
+    },
     status:{
-        type: DataTypes.ENUM("Approved", "NotApproved"),
-        defaultValue: "Approved"
+        type: DataTypes.ENUM("Reviewed","Approved", "NotApproved"),
+        defaultValue: "Reviewed"
     }
 },{
     freezeTableName: true,

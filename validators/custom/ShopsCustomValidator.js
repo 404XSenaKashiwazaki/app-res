@@ -64,12 +64,22 @@ export const rule = [
     }),
     check("shops.*.name").trim().notEmpty().withMessage("Nama tidak boleh kosong").custom( async (name,{ req }) => {
         const inDb = await Shops.findOne({ where: { name: name }, paranoid: false })
-        const userId = req.body.shops.map(e=> e.UserId)
         if(req.method == "POST"){
             if(inDb) throw new Error(`Nama ${ name } sudah di gunakan`)
                 return
         }
     }),
+    check("shops.*.id_card").trim().notEmpty().withMessage("Tanda pengenal tidak boleh kosong"),
+    check("shops.*.comment").trim().notEmpty().withMessage("Permohonan tidak boleh kosong"),
     check("shops.*.desk").trim().notEmpty().withMessage("Deskripsi tidak boleh kosong"),
     check("shops.*.status").trim().notEmpty().withMessage("Status tidak boleh kosong"),
+]
+
+export const ruleAcc = [
+    check("userid").isArray("Data tidak valid").custom((value) => {
+        if (value.length === 0) {
+            throw new Error("User wajib diisi");
+        }
+        return true;
+    })
 ]

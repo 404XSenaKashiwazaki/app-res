@@ -2,12 +2,11 @@ import {
     findAll as findAllService,
     findOne as findOneService,
     store as storeService,
+    update as updateService,
     destroy as destroyService,
-    cancel as cancelService,
-    quantity as quantityService,
-    checkout as checkoutService,
-    accepted as acceptedService,
-} from "../../service/frontend/OrdersService.js"
+    restore as restoreService,
+    acc as accService,
+} from "../../service/frontend/ShopsService.js"
 import { CreateResponse } from "../../utils/CreateResponse.js"
 
 export const findAll = async (req,res,next) => {
@@ -19,6 +18,7 @@ export const findAll = async (req,res,next) => {
     }
 }
 
+
 export const findOne = async (req,res,next) => {
     try {
         const response = await findOneService(req)
@@ -27,7 +27,6 @@ export const findOne = async (req,res,next) => {
         next(error)
     }
 }
-
 
 export const store = async (req,res,next) => {
     try {
@@ -38,9 +37,9 @@ export const store = async (req,res,next) => {
     }
 }
 
-export const checkout = async (req,res,next) => {
+export const update = async (req,res,next) => {
     try {
-        const response = await checkoutService(req)
+        const response = await updateService(req)
         CreateResponse(res, response)
     } catch (error) {
         next(error)
@@ -56,28 +55,18 @@ export const destroy = async (req,res,next) => {
     }
 }
 
-
-export const quantity = async (req,res,next) => {
+export const restore = async (req,res,next) => {
     try {
-        const response = await quantityService(req)
+        const response = await restoreService(req)
         CreateResponse(res, response)
     } catch (error) {
         next(error)
     }
 }
 
-export const cancel = async (req,res,next) => {
+export const acc = async (req,res,next) => {
     try {
-        const response = await cancelService(req)
-        CreateResponse(res, response)
-    } catch (error) {
-        next(error)
-    }
-}
-
-export const accepted = async (req,res,next) => {
-    try {
-        const response = await acceptedService(req)
+        const response = await accService(req)
         CreateResponse(res, response)
     } catch (error) {
         next(error)

@@ -2,6 +2,7 @@ import { Op } from "sequelize"
 import Shops from "../../models/backend/Shops.js"
 import { CreateErrorMessage } from "../../utils/CreateError.js"
 import { existsSync, unlink } from "node:fs"
+import { Users } from "../../models/Index.js"
 //============================// 
 
 export const findAll = async (req) => {
@@ -45,13 +46,13 @@ export const findAll = async (req) => {
 }
 
 export const findOne = async (req) => {
-  const { id } = req.params
+  const { username } = req.params
   const paranoid = req.query.type == "restore" ? false : true
   const where = paranoid 
-  ? { where: { [Op.and]: { id: id, deletedAt: { [Op.is]: null} }  } }
-  : { where: { [Op.and]: { id: id, deletedAt: { [Op.not]: null} }  } }
+  ? { where: { deletedAt: { [Op.is]: null} } }
+  : { where: { deletedAt: { [Op.not]: null}  } }
 
-  const shops = await Shops.findOne({...where, paranoid})
+  const shops = await Shops.findOne({...where, include:[{ model: Users, where: { username: username } }],paranoid})
   if(!shops) throw CreateErrorMessage("Tidak ada data",404)
   return { 
     status:  200,
@@ -93,30 +94,28 @@ export const update = async (req) => {
 }
 
 export const destroy = async (req) => {
-  const { id } = req.body
-  const force = req.query.permanent == "true" ? true : false
+  const { username } = req.params
+  const shops = await Shops.findOne({ include:[{ model: Users, where: {  username  }}], paranoid: false, attributes: ["id"] })
+  if(!shops) throw CreateErrorMessage("Tidak ada data",404)
 
-  const shops = (await Shops.findAll({ where: { id: id }, paranoid: false, attributes: ["id"] })).filter(e=> e != null)
-  if(shops.length == 0) throw CreateErrorMessage("Tidak ada data",404)
-
-  await Shops.destroy({ where: { id: id }, force: force })
+  await shops.destroy()
   return { 
     status:  200,
-    message: `${ shops.length } Data berhasil di hapus`, 
+    message: `Data berhasil di hapus`, 
     response: { shops  } 
   }
 }
 
 export const restore = async (req) => {
-  const { id } = req.body
-  const shops = (await Shops.findAll({ where: { id: id }, paranoid: false, attributes: ["id"] })).filter(e=> e != null)
-  
-  if(shops.length == 0) throw CreateErrorMessage("Tidak ada data",404)
-  await Shops.restore({ where: { id: id } })
+  const { username } = req.params
+  const shops = await Shops.findOne({ include:[{ model: Users, where: {  username  }}], paranoid: false, attributes: ["id"] })
+  if(!shops) throw CreateErrorMessage("Tidak ada data",404)
+
+  await shops.restore()
   
   return { 
     status:  200,
-    message: `${ shops.length } Data berhasil di restore`,  
+    message: `Data berhasil di restore`,  
     response: { shops } 
   }
 }

@@ -1,5 +1,5 @@
 import express from "express"
-import { cancel, destroy, findAll, findOne, quantity, store, checkout } from "../../controllers/frontend/OrdersController.js"
+import { cancel, destroy, findAll, findOne, quantity, store, checkout, accepted } from "../../controllers/frontend/OrdersController.js"
 import { validate } from "../../validators/Validator.js"
 import { fileUploads } from "../../middleware/ValidateUpload.js"
 import { rule, ruleOders, validateDuplicate, validateItemProducts, ruleQuantity } from "../../validators/custom/OrdersCustomValidator.js"
@@ -22,6 +22,9 @@ routes.route("/orders/:username/:orderid/checkout")
 
 routes.route("/orders/:username/:orderid/:productid/quantity/:type")
 .put(quantity)
+
+routes.route("/orders/:username/:orderid/accepted")
+.put(accepted)
 
 routes.route("/orders/:username/:orderid/cancel") //type=cancel
 .delete(cancel)
