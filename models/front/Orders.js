@@ -13,7 +13,7 @@ const Orders = sequelize.define("Orders",{
         type: DataTypes.STRING
     },
     status:{
-        type: DataTypes.ENUM("Shopping_Cart","Prepared","Pending", "Completed", "Cancelled"),
+        type: DataTypes.ENUM("Shopping_Cart","Prepared","Pending", "Delivery_Process", "Completed", "Cancelled"),
         defaultValue: "Shopping_Cart"
     }
 },{

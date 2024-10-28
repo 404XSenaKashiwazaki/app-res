@@ -16,6 +16,7 @@ import CategorieRoute from "./routes/backend/CategoriesRoute.js"
 import PaymentMethodRoute from "./routes/backend/PaymentsMethodsRoute.js"
 import TableRoute from "./routes/backend/TablesRoute.js"
 import ShopsRoute from "./routes/backend/ShopsRoute.js"
+import ShopsOrdersRoute from "./routes/backend/ShopsOrdersRoute.js"
 // ================= import routes backend // =================
 
 // ================= import routes frontend // =================
@@ -117,6 +118,7 @@ app.use("/api/",CategorieRoute)
 app.use("/api/",TableRoute)
 app.use("/api/",PaymentMethodRoute)
 app.use("/api/",ShopsRoute)
+app.use("/api",ShopsOrdersRoute)
 // ================= routes backend // =================
 
 // ================= routes frontend // =================
