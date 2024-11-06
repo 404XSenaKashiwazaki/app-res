@@ -18,6 +18,17 @@ export const findAll = async (req,res,next) => {
 }
 
 
+export const findData = async (req,res,next) => {
+    try {
+        const response = await findAllService(req)
+        CreateResponse(res, response)
+    } catch (error) {
+        next(error)
+    }
+}
+
+
+
 export const findOne = async (req,res,next) => {
     try {
         const response = await findOneService(req)
