@@ -40,6 +40,7 @@ export const findAll = async (req) => {
   const totalsCount = (search == "") ? totals : orders.length
   const totalsPage = Math.ceil(totalsCount / limit)
   const totalsFilters = orders.length
+  console.log({ orders });
   
   return { 
     status:  200,

@@ -8,28 +8,28 @@ import { validationResult } from "express-validator"
 
 const routes = express.Router()
 
-routes.route("/orders/:username")
+routes.route("/shoppingcart/:username")
 .get(findAll)
 
-routes.route("/orders/:username/:id")
+routes.route("/shoppingcart/:username/:id")
 .get(findOne)
 
-routes.route("/orders/:username/add")
+routes.route("/shoppingcart/:username/add")
 .post(fileUploads("orders","orders","").any(),validate(ruleOders),validateItemProducts,validateDuplicate,store)
 
-routes.route("/orders/:username/:orderid/checkout")
+routes.route("shoppingcart/:username/:orderid/checkout")
 .put(fileUploads("orders","orders","").any(),checkout)
 
-routes.route("/orders/:username/:orderid/:productid/quantity/:type")
+routes.route("/shoppingcart/:username/:orderid/:productid/quantity/:type")
 .put(quantity)
 
-routes.route("/orders/:username/:orderid/accepted")
+routes.route("/shoppingcart/:username/:orderid/accepted")
 .put(accepted)
 
-routes.route("/orders/:username/:orderid/cancel") //type=cancel
+routes.route("/shoppingcart/:username/:orderid/cancel") //type=cancel
 .delete(cancel)
 
-routes.route("/orders/:username/:orderid/destroy") //type=destoy
+routes.route("/shoppingcart/:username/:orderid/destroy") //type=destoy
 .delete(destroy)
 
 export default routes

@@ -14,10 +14,12 @@ export const validateDuplicate = (req,res,next) => {
     users = users.map((e,i)=> {
         const username = e.username.split(" ").map(t=> t.toLowerCase()).join("")
         uniqUsername.push(username)
-        const profile = (e.files && e.files.length > 0) ? e.files[i].filename : (req.method == "PUT") ? e.profileOld : "default.jpg"
+        const profile = (req.files && req.files.length > 0) ? req.files[i].filename : (req.method == "PUT") ? e.profileOld : "default.jpg"
         
         uniqEmail.push(e.email)
-        const profileUrl = (e.files && e.files.length > 0) ? `${req.protocol}://${req.hostname}:8000/profile/${req.files[i].filename}` : (req.method == "PUT") ? e.profile_urlOld : "http://localhost:8000/profile/default.png"        
+        console.log({ files: e.files });
+        
+        const profileUrl = (req.files && req.files.length > 0) ? `${req.protocol}://${req.hostname}:8000/profile/${req.files[i].filename}` : (req.method == "PUT") ? e.profile_urlOld : "http://localhost:8000/profile/default.jpg"        
         const fullname = e.fullname.split(" ").map(t=> t.charAt(0).toUpperCase() + t.slice(1)).join(" ")
 
         return { ...e, username, fullname, profile, profileUrl }

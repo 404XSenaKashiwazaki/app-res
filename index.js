@@ -17,6 +17,7 @@ import PaymentMethodRoute from "./routes/backend/PaymentsMethodsRoute.js"
 import TableRoute from "./routes/backend/TablesRoute.js"
 import ShopsRoute from "./routes/backend/ShopsRoute.js"
 import ShopsOrdersRoute from "./routes/backend/ShopsOrdersRoute.js"
+import SitesRoute from "./routes/backend/SitesRoute.js"
 // ================= import routes backend // =================
 
 // ================= import routes frontend // =================
@@ -40,7 +41,7 @@ import Database from "./config/Database.js"
 
 // ================= import widdleware // =================
 import CreateError from "./middleware/CreateError.js"
-import { Orders, OrdersItem, Payments, Products, Reservations, Shops } from "./models/Index.js"
+import { Comment, ImageProducts, Orders, OrdersItem, Payments, Products, Reservations, Shops, Sites } from "./models/Index.js"
 
 // ================= import middleware // =================
 
@@ -53,6 +54,7 @@ const app = express()
 let whitelist = ['http://localhost:5173']
 let corsOpt = function (req, callback) {
     let corsOptions;
+
     if (whitelist.indexOf(req.header('Origin')) !== -1) {
         corsOptions = { origin: true ,credentials: true } // reflect (enable) the requested origin in the CORS response
     } else {
@@ -70,14 +72,15 @@ const _run =  () => {
     //    const products = await users.getProducts()
     // await Products.destroy({ where: { UserId: [1]} })
     // await Promise.all(products.map(product => product.destroy()))
-        // await Orders.sync({ force: true })
         // await Shops.sync({ force: true })
         // await Payments.sync({ force: true })
+        //    await Orders.sync({ force: true })
         // await OrdersItem.sync({ force: true })
         // await Products.sync({ force: true })
         // await ImageProducts.sync({ force: true })
         // await User_Products.sync({ force: true })
         // await Reservations.sync({ force: true })
+        // await Sites.sync({ force : true })
         // await Database.sync({ force: true }) 
         // await Userd.sync({ force: true })
         // await Comment.sync({ force: true })
@@ -106,6 +109,8 @@ app.use(Cors(corsOpt))
 // ================= express config statis file// =================
 app.use("/products",express.static("./public/products"))
 app.use("/shops",express.static("./public/shops"))
+app.use("/sites",express.static("./public/sites"))
+app.use("/profile",express.static("./public/profile"))
 // ================= express config statis file// =================
 
 // ================= routes auth // =================
@@ -113,25 +118,33 @@ app.use("/api/",AuthRoute)
 // ================= routes auth // =================
 
 // ================= routes backend // =================
-app.use("/api/",UsersRoute)
-app.use("/api/",RolesRoute)
-app.use("/api/",ContactRoute)
-app.use("/api/",CommentRoute)
-app.use("/api/",ProductRoute)
-app.use("/api/",CategorieRoute)
-app.use("/api/",TableRoute)
-app.use("/api/",PaymentMethodRoute)
-app.use("/api/",ShopsRoute)
-app.use("/api",ShopsOrdersRoute)
+app.use("/api/",
+    UsersRoute,
+    ProfileRoute,
+    RolesRoute,
+    ContactRoute,
+    CommentRoute,
+    ProductRoute,
+    CategorieRoute,
+    TableRoute,
+    PaymentMethodRoute,
+    ShopsRoute,
+    ShopsOrdersRoute,
+    SitesRoute,
+    ProductRoute,
+    OrdersFrontRoute,
+)
+
 // ================= routes backend // =================
 
 // ================= routes frontend // =================
-app.use("/",ProductsFrontRoute)
-app.use("/",OrdersFrontRoute)
-app.use("/",PaymentsFrontRoute)
-app.use("/",ShopsFrontRoute)
-app.use("/",ReservationsFrontRoute)
-app.use("/",TablesFrontRoute)
+app.use("/",
+    ProductsFrontRoute,
+    PaymentsFrontRoute,
+    ShopsFrontRoute,
+    ReservationsFrontRoute,
+    TablesFrontRoute
+)
 // ================= routes frontend // =================
 
 // ================= routes refreshtoken // =================

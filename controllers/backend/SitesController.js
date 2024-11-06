@@ -1,29 +1,16 @@
 import {
-    findAll as findAllService,
-    findOne as findOneService,
+    find as findService,
     store as storeService,
     update as updateService,
     destroy as destroyService,
-    restore as restoreService,
-    createSlug as createSlugService,
-    addImage as addImageService
-} from "../../service/backend/ProductsService.js"
+    restore as restoreService
+} from "../../service/backend/SitesService.js"
 import { CreateResponse } from "../../utils/CreateResponse.js"
 
-export const findAll = async (req,res,next) => {
+export const find = async (req,res,next) => {
     try {
-        const response = await findAllService(req)
-        CreateResponse(res, response)
-    } catch (error) {
-        next(error)
-    }
-}
-
-
-export const findOne = async (req,res,next) => {
-    try {
-        const response = await findOneService(req)
-        CreateResponse(res, response)
+        const response = await findService(req)
+        return res.status(200).json({...response})
     } catch (error) {
         next(error)
     }
@@ -47,15 +34,6 @@ export const update = async (req,res,next) => {
     }
 }
 
-export const addImage = async (req,res,next) => {
-    try {
-        const response = await addImageService(req)
-        CreateResponse(res, response)
-    } catch (error) {
-        next(error)
-    }
-}
-
 export const destroy = async (req,res,next) => {
     try {
         const response = await destroyService(req)
@@ -69,15 +47,6 @@ export const restore = async (req,res,next) => {
     try {
         const response = await restoreService(req)
         CreateResponse(res, response)
-    } catch (error) {
-        next(error)
-    }
-}
-
-export const createSlug = async (req,res,next) => {
-    try {
-        const response = await createSlugService(req)
-        CreateResponse(res,response)
     } catch (error) {
         next(error)
     }

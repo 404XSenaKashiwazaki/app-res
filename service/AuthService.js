@@ -7,23 +7,41 @@ import env from "dotenv"
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import Role from "../models/backend/Roles.js"
+import Shops from "../models/backend/Shops.js"
 
 env.config()
 
 export const login = async (req,res) => {
     const { username, password } = req.body
-    const user = await Users.findOne({where:{ username: username},include: [{ model: Role },{ model: UsersDetails }]})
+    const user = await Users.findOne({ 
+        where:{ username: username },
+        include: [{ 
+            model: Role, attributes:["id","name","desk"], 
+            through: { attributes:["RoleId","UserId"] }
+        },{ 
+            model: UsersDetails, attributes: ["id","UserId","desc","noHp","profile","profileUrl"] 
+        },{
+            model: Shops, attributes:["id","name","logo","logo_url","desk","status","UserId"]
+        }] 
+    })
     if(!user) throw CreateErrorMessage("Username tidak ditemukan, silahkan register",400)
     
     const match = await bcrypt.compare(password,user.password)
     if(!match) throw CreateErrorMessage("Username / Password anda salah",400)
+
+    const roles = user.Roles
+    const navigate = roles.map(t => (t.name.trim().toLowerCase().includes("admin","penjual")) ? "/api/dashboard" : "/")
+    
+    
     const accessToken = jwt.sign({ 
         id: user.id,
         username: user.username,
         fullname: user.fullname,
         email: user.email,
         roles: user.Roles,
-        detailUsers: user.UsersDetail
+        detailUsers: user.UsersDetail,
+        shops: user.Shop,
+        navigate: navigate[0]
     },
         process.env.ACCESS_TOKEN_SECRET,
     {expiresIn: "30s"})
@@ -34,7 +52,9 @@ export const login = async (req,res) => {
         fullname: user.fullname,
         email: user.email,
         roles: user.Roles,
-        detailUsers: user.UsersDetail
+        detailUsers: user.UsersDetail,
+        shops: user.Shop,
+        navigate: navigate[0]
     },
         process.env.REFRESH_TOKEN_SECRET,
     {expiresIn: "1d"})

@@ -141,7 +141,7 @@ export const update = async (req) => {
         
       })
       // update file profile
-      if(existsSync("./public/images/"+users?.UsersDetails?.profile) && users?.UsersDetails?.profile != "default.png") unlink("./public/images/"+users?.UsersDetails?.profile, err => {
+      if(existsSync("./public/profile/"+users?.UsersDetails?.profile) && users?.UsersDetails?.profile != "default.jpg") unlink("./public/profile/"+users?.UsersDetails?.profile, err => {
         if(err) throw CreateErrorMessage("File gagal di hapus",500)
         console.log("File berhasil di hapus")
       })

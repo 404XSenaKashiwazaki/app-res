@@ -12,12 +12,12 @@ const UsersDetails = Database.define("UsersDetails",{
     profile: {
         type: DataTypes.STRING("500"),
         allowNull: false,
-        defaultValue: "default.png"
+        defaultValue: "default.jpg"
     },
     profileUrl: {
         type: DataTypes.STRING("500"),
         allowNull: false,
-        defaultValue: "http://localhost:8000/images/default.png",
+        defaultValue: "http://localhost:8000/images/default.jpg",
     },
     noHp: {
         type: DataTypes.STRING("13"),

@@ -27,10 +27,6 @@ const Products = Database.define("Products",{
         allowNull: false,
         unique: true,
     },
-    jenis_produk: {
-        type: DataTypes.ENUM("Makanan","Minuman"),
-        defaultValue: "Makanan"
-    },
     stok_produk: {
         type: DataTypes.BIGINT,
         allowNull: false,

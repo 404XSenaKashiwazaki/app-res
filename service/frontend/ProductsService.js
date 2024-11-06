@@ -4,6 +4,8 @@ import Products from "../../models/backend/Products.js"
 import Reservations from "../../models/front/Reservations.js"
 import { CreateErrorMessage } from "../../utils/CreateError.js"
 import Users from "../../models/backend/Users.js"
+import { ImageProducts, Shops } from "../../models/Index.js"
+import Categories from "../../models/backend/Categories.js"
 //============================// 
 
 export const findAll = async (req) => {
@@ -49,7 +51,7 @@ export const findAll = async (req) => {
   
 
   const whereCount = { where: { deletedAt: { [(paranoid) ? Op.is : Op.not] : null } } , paranoid: false}
-  const products = await Products.findAll({...where, paranoid ,limit, offset, order: [["id","DESC"]]})   
+  const products = await Products.findAll({...where, include:[{ model: ImageProducts, },{ model: Categories }], paranoid ,limit, offset, order: [["id","DESC"],[ImageProducts,"id","ASC"]]})   
   const totals = await Products.count(whereCount)
 
   const totalsCount = (search == "") ? totals : products.length
@@ -59,7 +61,7 @@ export const findAll = async (req) => {
   return { 
     status:  200,
     message: "", 
-    response: { products, page, offset, limit,totalsPage,totals, totalsFilters } 
+    response: { products,page, offset, limit,totalsPage,totals, totalsFilters } 
   }
 }
 
@@ -70,7 +72,7 @@ export const findOne = async (req) => {
   ? { where: { [Op.and]: { slug, deletedAt: { [Op.is]: null} }  } }
   : { where: { [Op.and]: { slug, deletedAt: { [Op.not]: null} }  } }
 
-  const products = await Products.findOne({...where, paranoid})
+  const products = await Products.findOne({...where, include: [{ model: ImageProducts },{ model: Categories },{ model: Shops }], paranoid})
   if(!products) throw CreateErrorMessage("Tidak ada data",404)
   return { 
     status:  200,

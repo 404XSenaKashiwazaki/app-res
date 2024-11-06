@@ -13,6 +13,7 @@ import Category from "./backend/Categories.js"
 import UsersDetails from "./backend/UsersDetails.js"
 import PaymentsMethods from "./backend/PaymentMethods.js"
 import Shops from "./backend/Shops.js"
+import Sites from "./backend/Sites.js"
 import sequelize from "../config/Database.js"
 import { DataTypes, Sequelize } from "sequelize"
 
@@ -66,7 +67,7 @@ const OrdersItem = sequelize.define("OrdersItems",{
                 orderItem.map(async (item, indx) => {
                     console.log(item);
                     
-                    await Products.increment("stok_produk",{ by: item.quantity, where: { id: item.ProductId } }) //bug masih bisa di increment produk, padahal order sudah di hapus
+                    await Products.increment("stok_produk",{ by: item.quantity, where: { id: item.ProductId } }) //Bug masih bisa di-increment produk, padahal order sudah dihapus
                 })
                 // console.log(i);
                 
@@ -84,6 +85,9 @@ UsersDetails.belongsTo(Users)
 
 Shops.hasMany(Comment,{ onDelete: "CASCADE" })
 Comment.belongsTo(Shops)
+
+Users.hasMany(Comment,{ onDelete: "CASCADE" })
+Comment.belongsTo(Users)
 
 Users.hasMany(Contact,{ onDelete: "CASCADE"})
 Contact.belongsTo(Users)
@@ -104,8 +108,8 @@ Products.belongsTo(Category)
 Users.hasMany(Orders,{ onDelete: "CASCADE"})
 Orders.belongsTo(Users)
 
-Orders.belongsToMany(Products,{ through: OrdersItem , foreignKey: "OrderId"})
-Products.belongsToMany(Orders,{ through: OrdersItem, foreignKey: "ProductId" })
+Orders.belongsToMany(Products,{ through: OrdersItem , foreignKey: "OrderId" , uniqueKey: false})
+Products.belongsToMany(Orders,{ through: OrdersItem, foreignKey: "ProductId", uniqueKey: false })
 
 Orders.hasOne(Payments,{ onDelete: "CASCADE" })
 Payments.belongsTo(Orders)
@@ -135,5 +139,6 @@ export {
     Reservations,
     Payments,
     PaymentsMethods,
-    Shops
+    Shops,
+    Sites
 }

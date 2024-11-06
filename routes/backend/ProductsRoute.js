@@ -1,9 +1,9 @@
 import express from "express"
-import { createSlug, destroy, findAll, findOne, restore, store, update } from "../../controllers/backend/ProductsController.js"
+import { addImage, createSlug, destroy, findAll, findOne, restore, store, update } from "../../controllers/backend/ProductsController.js"
 import { validate } from "../../validators/Validator.js"
 
 import upload, { fileUploads } from "../../middleware/ValidateUpload.js"
-import { rule, validateDuplicate, validateImageProduk, validateUpdate } from "../../validators/custom/ProductsCustomValidator.js"
+import { rule, ruleAddImage, validateAddImage, validateDuplicate, validateImageProduk, validateUpdate } from "../../validators/custom/ProductsCustomValidator.js"
 import { VerifyToken } from "../../middleware/VerifyToken.js"
 import { body, checkSchema } from "express-validator"
 
@@ -12,13 +12,17 @@ const routes = express.Router()
 routes.route("/products")
 .get(findAll)
 
-routes.route("/products/:id")
+routes.route("/products/:slug")
 .get(findOne)
+
 
 routes.route("/products/add")
 .post(fileUploads("products","products","./public/products").any(),validate(rule),validateDuplicate,store)
 routes.route("/products/update")
 .put(fileUploads("products","products","./public/products").any(),validate(rule),validateDuplicate,validateUpdate,update)
+
+routes.route("/products/image/add")
+.put(fileUploads("products","nama_image","./public/products").any(),validate(ruleAddImage),validateAddImage,addImage) // wajib cek, add image berhasil. Hapus image yg diupdate belunm
 
 routes.route("/products/destroy")
 .delete(destroy)

@@ -43,12 +43,13 @@ export const validateDuplicate = async (req,res,next) => {
 export const validateItemProducts = async (req,res,next) => {
     let { orders } = req.body
 
+    
     const roleErr = []
     const roleEmpty = []
     orders = await Promise.all(orders.map(async (e,i)=>{
         const orders_item = e.orders_item
-
-        if(orders_item.length == 0 || orders_item == " ") {
+        
+        if(orders_item.length == 0) {
             roleEmpty.push({
                 "value": " ",
                 "msg": `Order Produk tidak boleh kosong`,
@@ -77,6 +78,7 @@ export const rule = [
 
 export const ruleOders = [
     check("orders").isArray().withMessage("Data tidak valid"),
+    check("orders.*.UserId").notEmpty().withMessage("Order tidak boleh kosong"),
     check("orders.*.orders_item").isArray().withMessage("Data tidak valid"),
     check("orders.*.orders_item.*.ShopId").notEmpty().withMessage("Order tidak boleh kosong"),
     check("orders.*.orders_item.*.ProductId").notEmpty().withMessage("Order tidak boleh kosong"),
